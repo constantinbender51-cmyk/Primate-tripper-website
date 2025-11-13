@@ -237,19 +237,18 @@ def generate_website():
         kraken_json_content = f.read()
     
     # Create the prompt for Gemini with Kraken data
-    # Create the prompt for Gemini with Kraken data
     prompt = f"""
     output HTML nothing else
     create a website for a company called primate which automates trading systems
-
+    
     Design requirements:
     - Color palette: Gray, black, white and light blue commonly associated with programming
     - Tone: Fun but serious - engaging yet professional for a trading product
     - Mobile friendly and responsive
-
+    
     Product focus: Tripper automated trading algorithm
     Data source: kraken.json contains live trading data: {kraken_json_content}
-
+    
     Let Gemini freely interpret the kraken.json contents and create an appropriate product website for Tripper that showcases the algorithm's capabilities using the actual trading data.
     """
     
@@ -301,6 +300,34 @@ def generate_website():
     
     return True
 
+def calculate_next_hour():
+    """Calculate seconds until next full hour"""
+    now = datetime.now()
+    next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    seconds_until_next_hour = (next_hour - now).total_seconds()
+    return seconds_until_next_hour
+
+def update_loop():
+    """Main update loop that runs every full hour"""
+    print("🔄 Starting hourly update loop...")
+    
+    while True:
+        # Generate website immediately on first run
+        success = generate_website()
+        if success:
+            print(f"✅ Website update completed at {datetime.now()}")
+        else:
+            print(f"❌ Website update failed at {datetime.now()}")
+        
+        # Calculate sleep time until next full hour
+        sleep_seconds = calculate_next_hour()
+        next_update = datetime.now() + timedelta(seconds=sleep_seconds)
+        print(f"⏰ Next update scheduled for: {next_update.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"💤 Sleeping for {sleep_seconds:.0f} seconds...")
+        
+        # Sleep until next full hour
+        time.sleep(sleep_seconds)
+
 def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -323,26 +350,6 @@ def start_web_server(port=8080):
         except KeyboardInterrupt:
             print("\n👋 Shutting down web server...")
             httpd.shutdown()
-def update_loop():
-    """Main update loop that runs every full hour"""
-    print("🔄 Starting hourly update loop...")
-    
-    while True:
-        # Generate website immediately on first run
-        success = generate_website()
-        if success:
-            print(f"✅ Website update completed at {datetime.now()}")
-        else:
-            print(f"❌ Website update failed at {datetime.now()}")
-        
-        # Calculate sleep time until next full hour
-        sleep_seconds = calculate_next_hour()
-        next_update = datetime.now() + timedelta(seconds=sleep_seconds)
-        print(f"⏰ Next update scheduled for: {next_update.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"💤 Sleeping for {sleep_seconds:.0f} seconds...")
-        
-        # Sleep until next full hour
-        time.sleep(sleep_seconds)
 
 if __name__ == "__main__":
     # Start web server immediately with loading page
