@@ -2,6 +2,7 @@ import os
 import http.server
 import socketserver
 import google.generativeai as genai
+from datetime import datetime
 
 def get_gemini_response(api_key, prompt):
     """Send prompt to Gemini API and return the response"""
@@ -9,7 +10,7 @@ def get_gemini_response(api_key, prompt):
         # Configure Gemini
         genai.configure(api_key=api_key)
         
-        # Create the model - using Gemini Flash Lite
+        # Create the model - using correct Gemini 2.5 Flash Lite
         model = genai.GenerativeModel('gemini-2.5-flash-lite')
         
         print("Sending request to Gemini API...")
@@ -53,6 +54,17 @@ def extract_html_from_response(api_response):
     
     return html_content
 
+def get_lightness_level():
+    """Get current seconds and calculate lightness level (0-59)"""
+    current_second = datetime.now().second
+    print(f"⏰ Current second: {current_second}")
+    
+    # Lightness level is inverse of seconds (0 = lightest, 59 = darkest)
+    lightness_level = 59 - current_second
+    print(f"🎨 Lightness level: {lightness_level}/59 (0=darkest, 59=lightest)")
+    
+    return lightness_level
+
 def create_website():
     """Main function to create and serve the website"""
     
@@ -63,21 +75,34 @@ def create_website():
         print("Please set your Google AI Studio API key as environment variable")
         return
     
-    # Create the prompt for Gemini
-    prompt = """
+    # Get current lightness level based on seconds
+    lightness_level = get_lightness_level()
+    
+    # Create the dynamic prompt for Gemini with gradient theme
+    prompt = f"""
     Create a professional, responsive HTML website for a company called "Primate" that has two automated trading system products: "Tripper" and "Camper".
 
-    Requirements:
-    - Professional, modern UI with grey, black, white, and light blue color scheme
+    CRITICAL THEME REQUIREMENT: 
+    - Use a gradient theme system where lightness level {lightness_level}/59 determines the color scheme
+    - Lightness scale: 0 = darkest theme, 59 = lightest theme
+    - Current lightness level: {lightness_level}
+    - Adjust ALL background colors, text colors, and UI elements accordingly
+    - Maintain the same professional financial/trading aesthetic throughout
+
+    Design Specifications:
+    - At lightness level {lightness_level}, create a color scheme that matches this exact position on the light-dark spectrum
+    - Use grey, black, white, and light blue colors but adjust their brightness based on the lightness level
+    - Higher lightness levels ({lightness_level} is {'high' if lightness_level > 30 else 'low'}) should use lighter backgrounds and darker text
+    - Lower lightness levels should use darker backgrounds and lighter text
+    - Ensure proper contrast ratios for readability
+
+    Website Requirements:
     - Fully responsive and mobile-friendly
     - Dropdown navigation menu with options: Home, Products (with Tripper and Camper dropdown), About, Contact
     - Under the Tripper tab, show performance over time with mock data (charts/graphs showing ROI progression)
     - Include sections for both products with their descriptions
     - Contact page/form
     - Use mock performance data for demonstration
-
-    Design specifications:
-    - Color scheme: grey, black, white, and light blue (#3498db or similar)
     - Professional financial/trading company aesthetic
     - Clean, modern typography
     - Responsive grid layout
@@ -88,6 +113,7 @@ def create_website():
     """
     
     print("🚀 Generating website with Gemini API...")
+    print(f"🌈 Creating theme with lightness level: {lightness_level}/59")
     
     # Get HTML from Gemini API
     html_content = get_gemini_response(api_key, prompt)
@@ -117,7 +143,7 @@ def create_website():
         print("❌ File verification: index.html was not created!")
         return
     
-    # Start web server
+    # Start web server on port 8080
     start_web_server()
 
 def start_web_server(port=8080):
