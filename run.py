@@ -1,67 +1,55 @@
 import os
 import http.server
 import socketserver
-import requests
-import json
-from urllib.parse import urlparse
+import google.generativeai as genai
 
-def get_deepseek_response(api_key, prompt):
-    """Send prompt to DeepSeek API and return the response"""
-    url = "https://api.deepseek.com/v1/chat/completions"
-    
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}"
-    }
-    
-    data = {
-        "model": "deepseek-chat",
-        "messages": [
-            {
-                "role": "user",
-                "content": prompt
-            }
-        ],
-        "stream": False
-    }
-    
+def get_gemini_response(api_key, prompt):
+    """Send prompt to Gemini API and return the response"""
     try:
-        response = requests.post(url, headers=headers, json=data)
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.RequestException as e:
-        print(f"Error calling DeepSeek API: {e}")
+        # Configure Gemini
+        genai.configure(api_key=api_key)
+        
+        # Create the model - using Gemini Flash 2.5
+        model = genai.GenerativeModel('gemini-1.5-flash')
+        
+        # Generate content
+        response = model.generate_content(prompt)
+        return response.text
+        
+    except Exception as e:
+        print(f"Error calling Gemini API: {e}")
         return None
 
 def extract_html_from_response(api_response):
-    """Extract HTML content from DeepSeek API response"""
-    if api_response and 'choices' in api_response and len(api_response['choices']) > 0:
-        content = api_response['choices'][0]['message']['content']
-        
-        # Extract HTML from code blocks if present
-        if '```html' in content:
-            start = content.find('```html') + 7
-            end = content.find('```', start)
-            return content[start:end].strip()
-        elif '```' in content:
-            start = content.find('```') + 3
-            end = content.find('```', start)
-            return content[start:end].strip()
-        else:
-            return content.strip()
+    """Extract HTML content from Gemini API response"""
+    if not api_response:
+        return None
     
-    return None
+    content = api_response.strip()
+    
+    # Extract HTML from code blocks if present
+    if '```html' in content:
+        start = content.find('```html') + 7
+        end = content.find('```', start)
+        return content[start:end].strip()
+    elif '```' in content:
+        start = content.find('```') + 3
+        end = content.find('```', start)
+        return content[start:end].strip()
+    else:
+        return content
 
 def create_website():
     """Main function to create and serve the website"""
     
     # Get API key from environment variable
-    api_key = os.getenv('deepseek_api_key')
+    api_key = os.getenv('GOOGLE_API_KEY')
     if not api_key:
-        print("Error: deepseek_api_key environment variable not set")
+        print("Error: GOOGLE_API_KEY environment variable not set")
+        print("Please set your Google AI Studio API key as environment variable")
         return
     
-    # Create the prompt for DeepSeek
+    # Create the prompt for Gemini
     prompt = """
     Create a professional, responsive HTML website for a company called "Primate" that has two automated trading system products: "Tripper" and "Camper".
     
@@ -79,28 +67,31 @@ def create_website():
     - Professional financial/trading company aesthetic
     - Clean, modern typography
     - Responsive grid layout
+    - Include interactive elements for the performance charts
     
     Please output ONLY the HTML code with embedded CSS and JavaScript, no explanations or markdown formatting.
+    Return complete, valid HTML5 document.
     """
     
-    print("Generating website with DeepSeek API...")
+    print("Generating website with Gemini API...")
     
-    # Get HTML from DeepSeek API
-    response = get_deepseek_response(api_key, prompt)
-    if not response:
-        print("Failed to get response from DeepSeek API")
-        return
-    
-    html_content = extract_html_from_response(response)
+    # Get HTML from Gemini API
+    html_content = get_gemini_response(api_key, prompt)
     
     if not html_content:
+        print("Failed to get response from Gemini API")
+        return
+    
+    # Clean and extract HTML
+    final_html = extract_html_from_response(html_content)
+    
+    if not final_html:
         print("Failed to extract HTML from API response")
-        print("Raw response:", json.dumps(response, indent=2))
         return
     
     # Write HTML to file
     with open('index.html', 'w', encoding='utf-8') as f:
-        f.write(html_content)
+        f.write(final_html)
     
     print("Website generated successfully! Written to index.html")
     
