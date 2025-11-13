@@ -120,7 +120,7 @@ def create_website():
     # Start web server
     start_web_server()
 
-def start_web_server(port=8000):
+def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
