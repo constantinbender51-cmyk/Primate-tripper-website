@@ -237,10 +237,20 @@ def generate_website():
         kraken_json_content = f.read()
     
     # Create the prompt for Gemini with Kraken data
+    # Create the prompt for Gemini with Kraken data
     prompt = f"""
     output HTML nothing else
-    create a website for a company called primate which automates trading systems technical information about tripper the only currently live deployed algorithm can be found in the file kraken.json which contains the following: {kraken_json_content}
-    create a mobile friendly website designed around the data inside kraken.json
+    create a website for a company called primate which automates trading systems
+
+    Design requirements:
+    - Color palette: Gray, black, white and light blue commonly associated with programming
+    - Tone: Fun but serious - engaging yet professional for a trading product
+    - Mobile friendly and responsive
+
+    Product focus: Tripper automated trading algorithm
+    Data source: kraken.json contains live trading data: {kraken_json_content}
+
+    Let Gemini freely interpret the kraken.json contents and create an appropriate product website for Tripper that showcases the algorithm's capabilities using the actual trading data.
     """
     
     print("🌐 Generating website with real Kraken trading data...")
