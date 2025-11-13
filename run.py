@@ -167,7 +167,7 @@ def create_website():
     - Create comprehensive visualizations and displays for this trading data
 
     KRAKEN DATA STRUCTURE (for reference):
-    {kraken_json_content[:2000]}... [truncated]
+    {kraken_json_content}
 
     Website Requirements:
     - Professional, modern UI with grey, black, white, and light blue color scheme
@@ -201,6 +201,22 @@ def create_website():
     
     print("🌐 Generating website with real Kraken trading data...")
     
+    # Print the entire prompt with delays between lines
+    print("\n" + "="*80)
+    print("PROMPT SENT TO GEMINI:")
+    print("="*80)
+    
+    import time
+    prompt_lines = prompt.split('\n')
+    for i, line in enumerate(prompt_lines):
+        print(line)
+        if i < len(prompt_lines) - 1:  # Don't sleep after the last line
+            time.sleep(0.1)
+    
+    print("="*80)
+    print("END OF PROMPT")
+    print("="*80 + "\n")
+    
     # Get HTML from Gemini API
     html_content = get_gemini_response(google_api_key, prompt)
     
@@ -232,7 +248,7 @@ def create_website():
     
     # Start web server on port 8080
     start_web_server()
-
+    
 def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
