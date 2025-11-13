@@ -45,7 +45,7 @@ class KrakenFuturesApi:
         return base64.b64encode(sig).decode()
 
     # ------------------------------------------------------------------
-    # single universal request method
+    # single universal request method - FIXED VERSION
     # ------------------------------------------------------------------
     def _request(
         self, method: str, endpoint: str, params: Optional[Dict[str, Any]] = None
@@ -60,13 +60,21 @@ class KrakenFuturesApi:
             "User-Agent": "Kraken-Futures-Py-Client/1.0",
         }
 
+        # Build query string for both URL and signature
+        query_string = urllib.parse.urlencode(params) if params else ""
+        
         if method.upper() == "POST":
-            post_data = urllib.parse.urlencode(params)
+            post_data = query_string
             headers["Content-Type"] = "application/x-www-form-urlencoded"
-        elif params:
-            url += "?" + urllib.parse.urlencode(params)
+        else:
+            # For GET requests, include params in the URL
+            if query_string:
+                url += "?" + query_string
 
-        headers["Authent"] = self._sign_request(endpoint, nonce, post_data)
+        # FIX: Include query params in signature for GET requests
+        # For POST: use post_data, for GET: use query_string
+        signature_data = post_data if method.upper() == "POST" else query_string
+        headers["Authent"] = self._sign_request(endpoint, nonce, signature_data)
 
         rsp = requests.request(method, url, headers=headers, data=post_data or None)
         if not rsp.ok:
@@ -153,3 +161,10 @@ if __name__ == "__main__":
 
     print("\n--- private accounts ---")
     print(api.get_accounts())
+
+    print("\n--- testing get_fills ---")
+    try:
+        fills = api.get_fills()
+        print("Fills:", fills)
+    except Exception as e:
+        print(f"Error getting fills: {e}")
