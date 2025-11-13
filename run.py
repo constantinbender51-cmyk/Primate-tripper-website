@@ -323,6 +323,26 @@ def start_web_server(port=8080):
         except KeyboardInterrupt:
             print("\n👋 Shutting down web server...")
             httpd.shutdown()
+def update_loop():
+    """Main update loop that runs every full hour"""
+    print("🔄 Starting hourly update loop...")
+    
+    while True:
+        # Generate website immediately on first run
+        success = generate_website()
+        if success:
+            print(f"✅ Website update completed at {datetime.now()}")
+        else:
+            print(f"❌ Website update failed at {datetime.now()}")
+        
+        # Calculate sleep time until next full hour
+        sleep_seconds = calculate_next_hour()
+        next_update = datetime.now() + timedelta(seconds=sleep_seconds)
+        print(f"⏰ Next update scheduled for: {next_update.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"💤 Sleeping for {sleep_seconds:.0f} seconds...")
+        
+        # Sleep until next full hour
+        time.sleep(sleep_seconds)
 
 if __name__ == "__main__":
     # Start web server immediately with loading page
