@@ -34,10 +34,6 @@ def fetch_kraken_data():
         kraken_data['open_positions'] = api.get_open_positions()
         print("✅ Fetched open positions")
         
-        # Recent orders
-        kraken_data['recent_orders'] = api.get_recent_orders({'limit': 50})  # Last 50 orders
-        print("✅ Fetched recent orders")
-        
         # Open orders
         kraken_data['open_orders'] = api.get_open_orders()
         print("✅ Fetched open orders")
