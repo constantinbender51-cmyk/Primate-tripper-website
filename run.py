@@ -237,9 +237,13 @@ def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
-    # Verify the file exists before starting server
+    # Verify the files exist before starting server
     if not os.path.exists('index.html'):
         print("❌ Cannot start server: index.html not found!")
+        return
+        
+    if not os.path.exists('kraken.json'):
+        print("❌ Cannot start server: kraken.json not found!")
         return
         
     handler = http.server.SimpleHTTPRequestHandler
@@ -248,12 +252,14 @@ def start_web_server(port=8080):
         print(f"🌐 Web server running at http://localhost:{port}")
         print("📍 Serving from directory:", os.getcwd())
         print("📄 Available files:", [f for f in os.listdir('.') if f.endswith(('.html', '.json'))])
+        print("🔗 kraken.json will be available at: http://localhost:8080/kraken.json")
+        print("📊 The HTML page can fetch data from this URL")
         print("🛑 Press Ctrl+C to stop the server")
         try:
             httpd.serve_forever()
         except KeyboardInterrupt:
             print("\n👋 Shutting down web server...")
             httpd.shutdown()
-
+            
 if __name__ == "__main__":
     create_website()
