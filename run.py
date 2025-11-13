@@ -6,6 +6,8 @@ import google.generativeai as genai
 def get_gemini_response(api_key, prompt):
     """Send prompt to Gemini API and return the response"""
     try:
+        print("calling Gemini...")
+        
         # Configure Gemini
         genai.configure(api_key=api_key)
         
