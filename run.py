@@ -158,47 +158,10 @@ def create_website():
     
     # Create the prompt for Gemini with Kraken data
     prompt = f"""
-    Create a professional, responsive HTML website for a company called "Primate" that has two automated trading system products: "Tripper" and "Camper".
-
-    CRITICAL REQUIREMENT: 
-    - This website must display real trading data from Kraken Futures API
-    - The data is available in a file called 'kraken.json' in the same directory
-    - The JSON data structure includes: accounts, open_positions, recent_orders, open_orders, fills
-    - Create comprehensive visualizations and displays for this trading data
-
-    KRAKEN DATA STRUCTURE (for reference):
-    {kraken_json_content}
-
-    Website Requirements:
-    - Professional, modern UI with grey, black, white, and light blue color scheme
-    - Fully responsive and mobile-friendly
-    - Dropdown navigation menu with options: Home, Products (with Tripper and Camper dropdown), Trading Dashboard, About, Contact
-    - Under the Trading Dashboard, display comprehensive Kraken account data including:
-        * Account balances and equity
-        * Open positions with current P/L
-        * Recent order history
-        * Open orders
-        * Recent trade fills
-        * Performance charts and metrics
-    - Include sections for both Tripper and Camper products with their descriptions
-    - Contact page/form
-    - Use the actual Kraken data for all trading displays
-
-    Design specifications:
-    - Color scheme: grey, black, white, and light blue (#3498db or similar)
-    - Professional financial/trading company aesthetic
-    - Clean, modern typography
-    - Responsive grid layout
-    - Include interactive charts and data visualizations
-    - Create a comprehensive trading dashboard
-
-    IMPORTANT: The HTML should be designed to read and display data from 'kraken.json'
-    Use JavaScript to fetch and parse the JSON file and update the dashboard displays.
-
-    Please output ONLY the HTML code with embedded CSS and JavaScript, no explanations or markdown formatting.
-    Return complete, valid HTML5 document.
-    """
-    
+    output HTML nothing else
+    create a website for a company called primate which automates trading systems technical information about tripper the only currently live deployed algorithm can be found in the file kraken.json which contains the following: {kraken_json_content}
+    create a mobile friendly website designed around the data inside kraken.json
+    """    
     print("🌐 Generating website with real Kraken trading data...")
     
     # Print the entire prompt with delays between lines
