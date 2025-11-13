@@ -132,6 +132,85 @@ def extract_html_from_response(api_response):
     
     return html_content
 
+def create_loading_page():
+    """Create a temporary loading page while the real website is being generated"""
+    loading_html = """
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Primate - Loading</title>
+        <style>
+            body {
+                margin: 0;
+                padding: 0;
+                font-family: Arial, sans-serif;
+                background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+                color: white;
+                height: 100vh;
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                text-align: center;
+            }
+            .loading-container {
+                max-width: 500px;
+                padding: 2rem;
+            }
+            .logo {
+                font-size: 3rem;
+                font-weight: bold;
+                margin-bottom: 1rem;
+                color: #3498db;
+            }
+            .spinner {
+                border: 4px solid rgba(255, 255, 255, 0.3);
+                border-radius: 50%;
+                border-top: 4px solid #3498db;
+                width: 50px;
+                height: 50px;
+                animation: spin 1s linear infinite;
+                margin: 2rem auto;
+            }
+            @keyframes spin {
+                0% { transform: rotate(0deg); }
+                100% { transform: rotate(360deg); }
+            }
+            .message {
+                font-size: 1.2rem;
+                margin-bottom: 1rem;
+                opacity: 0.9;
+            }
+            .submessage {
+                font-size: 0.9rem;
+                opacity: 0.7;
+            }
+        </style>
+    </head>
+    <body>
+        <div class="loading-container">
+            <div class="logo">PRIMATE</div>
+            <div class="message">Automated Trading Systems</div>
+            <div class="spinner"></div>
+            <div class="message">Loading trading dashboard...</div>
+            <div class="submessage">Fetching real-time data from Kraken Futures</div>
+            <div class="submessage">This may take a few moments</div>
+        </div>
+        <script>
+            // Auto-reload every 10 seconds until proper page loads
+            setTimeout(() => {
+                window.location.reload();
+            }, 10000);
+        </script>
+    </body>
+    </html>
+    """
+    
+    with open('index.html', 'w', encoding='utf-8') as f:
+        f.write(loading_html)
+    print("⏳ Temporary loading page created")
+
 def generate_website():
     """Generate the website with current Kraken data"""
     # Get Google API key from environment variable
@@ -212,46 +291,13 @@ def generate_website():
     
     return True
 
-def calculate_next_hour():
-    """Calculate seconds until next full hour"""
-    now = datetime.now()
-    next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
-    seconds_until_next_hour = (next_hour - now).total_seconds()
-    return seconds_until_next_hour
-
-def update_loop():
-    """Main update loop that runs every full hour"""
-    print("🔄 Starting hourly update loop...")
-    
-    while True:
-        # Generate website immediately on first run
-        success = generate_website()
-        if success:
-            print(f"✅ Website update completed at {datetime.now()}")
-        else:
-            print(f"❌ Website update failed at {datetime.now()}")
-        
-        # Calculate sleep time until next full hour
-        sleep_seconds = calculate_next_hour()
-        next_update = datetime.now() + timedelta(seconds=sleep_seconds)
-        print(f"⏰ Next update scheduled for: {next_update.strftime('%Y-%m-%d %H:%M:%S')}")
-        print(f"💤 Sleeping for {sleep_seconds:.0f} seconds...")
-        
-        # Sleep until next full hour
-        time.sleep(sleep_seconds)
-
 def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
     
-    # Verify the files exist before starting server
+    # Create loading page if index.html doesn't exist
     if not os.path.exists('index.html'):
-        print("❌ Cannot start server: index.html not found!")
-        return
-        
-    if not os.path.exists('kraken.json'):
-        print("❌ Cannot start server: kraken.json not found!")
-        return
+        create_loading_page()
         
     handler = http.server.SimpleHTTPRequestHandler
     
@@ -269,9 +315,17 @@ def start_web_server(port=8080):
             httpd.shutdown()
 
 if __name__ == "__main__":
-    # Start web server in a separate thread
+    # Start web server immediately with loading page
     server_thread = threading.Thread(target=start_web_server, daemon=True)
     server_thread.start()
     
-    # Start the hourly update loop in main thread
-    update_loop()
+    # Generate the real website (will replace loading page)
+    print("🚀 Starting website generation...")
+    success = generate_website()
+    
+    if success:
+        print("🎉 Website successfully generated and ready!")
+        # Start the hourly update loop
+        update_loop()
+    else:
+        print("❌ Website generation failed, but loading page remains active")
