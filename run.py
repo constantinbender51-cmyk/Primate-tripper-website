@@ -3,7 +3,9 @@ import http.server
 import socketserver
 import google.generativeai as genai
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
+import time
+import threading
 
 # Import the Kraken Futures library
 from kraken_futures import KrakenFuturesApi
@@ -130,14 +132,13 @@ def extract_html_from_response(api_response):
     
     return html_content
 
-def create_website():
-    """Main function to create and serve the website"""
-    
+def generate_website():
+    """Generate the website with current Kraken data"""
     # Get Google API key from environment variable
     google_api_key = os.getenv('GOOGLE_API_KEY')
     if not google_api_key:
         print("❌ Error: GOOGLE_API_KEY environment variable not set")
-        return
+        return False
     
     # Fetch Kraken data first
     kraken_data = fetch_kraken_data()
@@ -161,7 +162,8 @@ def create_website():
     output HTML nothing else
     create a website for a company called primate which automates trading systems technical information about tripper the only currently live deployed algorithm can be found in the file kraken.json which contains the following: {kraken_json_content}
     create a mobile friendly website designed around the data inside kraken.json
-    """    
+    """
+    
     print("🌐 Generating website with real Kraken trading data...")
     
     # Print the entire prompt with delays between lines
@@ -169,7 +171,6 @@ def create_website():
     print("PROMPT SENT TO GEMINI:")
     print("="*80)
     
-    import time
     prompt_lines = prompt.split('\n')
     for i, line in enumerate(prompt_lines):
         print(line)
@@ -185,14 +186,14 @@ def create_website():
     
     if not html_content:
         print("❌ Failed to get response from Gemini API")
-        return
+        return False
     
     # Clean and extract HTML
     final_html = extract_html_from_response(html_content)
     
     if not final_html:
         print("❌ Failed to extract HTML from API response")
-        return
+        return False
     
     # Write HTML to file
     with open('index.html', 'w', encoding='utf-8') as f:
@@ -209,9 +210,36 @@ def create_website():
         file_size = os.path.getsize('kraken.json')
         print(f"📊 Data verification: kraken.json exists, size: {file_size} bytes")
     
-    # Start web server on port 8080
-    start_web_server()
+    return True
+
+def calculate_next_hour():
+    """Calculate seconds until next full hour"""
+    now = datetime.now()
+    next_hour = (now + timedelta(hours=1)).replace(minute=0, second=0, microsecond=0)
+    seconds_until_next_hour = (next_hour - now).total_seconds()
+    return seconds_until_next_hour
+
+def update_loop():
+    """Main update loop that runs every full hour"""
+    print("🔄 Starting hourly update loop...")
     
+    while True:
+        # Generate website immediately on first run
+        success = generate_website()
+        if success:
+            print(f"✅ Website update completed at {datetime.now()}")
+        else:
+            print(f"❌ Website update failed at {datetime.now()}")
+        
+        # Calculate sleep time until next full hour
+        sleep_seconds = calculate_next_hour()
+        next_update = datetime.now() + timedelta(seconds=sleep_seconds)
+        print(f"⏰ Next update scheduled for: {next_update.strftime('%Y-%m-%d %H:%M:%S')}")
+        print(f"💤 Sleeping for {sleep_seconds:.0f} seconds...")
+        
+        # Sleep until next full hour
+        time.sleep(sleep_seconds)
+
 def start_web_server(port=8080):
     """Start a simple HTTP server to serve the website"""
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
@@ -239,6 +267,11 @@ def start_web_server(port=8080):
         except KeyboardInterrupt:
             print("\n👋 Shutting down web server...")
             httpd.shutdown()
-            
+
 if __name__ == "__main__":
-    create_website()
+    # Start web server in a separate thread
+    server_thread = threading.Thread(target=start_web_server, daemon=True)
+    server_thread.start()
+    
+    # Start the hourly update loop in main thread
+    update_loop()
