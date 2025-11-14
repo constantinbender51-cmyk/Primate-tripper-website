@@ -239,17 +239,18 @@ def generate_website():
     # Create the prompt for Gemini with Kraken data
     prompt = f"""
     output HTML nothing else
-    create a website for a company called primate which automates trading systems
+    create a website for a company called PRIMATE
     
     Design requirements:
-    - Color palette: Gray, black, white and light blue commonly associated with programming
-    - Tone: Fun but serious - engaging yet professional for a trading product
-    - Mobile friendly and responsive
+    - Color palette: LIGHT COLOURS ABOVE, DARK COLORS BELOW AND ACCENTUATED BLUE THE ONE USED EVERYWHERE
+    - Tone: PROFESSIONAL CHAOS
+    - Mobile friendly
     
-    Product focus: Tripper automated trading algorithm
-    Data source: kraken.json contains live trading data: {kraken_json_content}
+    Product focus: Tripper, it does stuff
+    Data source: {kraken_json_content}
     
-    Let Gemini freely interpret the kraken.json contents and create an appropriate product website for Tripper that showcases the algorithm's capabilities using the actual trading data.
+    generate a website that is fun to explore with hidden dimensions and quirks
+    current time is your theme 
     """
     
     print("🌐 Generating website with real Kraken trading data...")
